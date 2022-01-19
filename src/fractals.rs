@@ -33,17 +33,20 @@ pub enum FracVal {
 impl Fractal {
     pub fn complex_to_frac_val(&self, z_in: MyComplex<f32>) -> FracVal {
 
-        let mut i: u32 = 0_u32;
+        let mut iterations: u32 = 0_u32;
         match self {
             Fractal::Mandelbrot() => {
                 // The iteration for a Mandelbrot set
                 // Iterate while the magniture is less than 2
                 let mut z: MyComplex<f32> = MyComplex::new(0.0, 0.0);
-                for i in 0..MAX_ITER {
+                for i in 1..=MAX_ITER {
                     z = z*z + z_in;
-                    if z.mag_sqr() < 4.0_f32 { break; }
+                    iterations = i;
+                    if z.mag_sqr() > 4.0_f32 { 
+                        break;
+                    }
                 }
-                FracVal::MandelJulia(i)
+                FracVal::MandelJulia(iterations)
             }
             // NOTE: since self is a borrowed value (aka immutable pass by
             // reference), z_const is a reference to an enum value. To use it,
@@ -52,17 +55,18 @@ impl Fractal {
                 // The iteration for a Julia set (increment by z_const in the
                 // iterating algorithm)
                 let mut z: MyComplex<f32> = z_in;
-                for i in 0..MAX_ITER {
+                for i in 1..=MAX_ITER {
                     z = z*z + *z_const;
-                    if z.mag_sqr() < 4.0 { break; }
+                    iterations = i;
+                    if z.mag_sqr() > 4.0 {
+                        break;
+                    }
                 }
-                FracVal::MandelJulia(i)
+                FracVal::MandelJulia(iterations)
             }
             Fractal::Newton(roots) => {
 
                 // The iteration for a Newton fractal (use the roots)
-                let mut j: usize;
-                let mut k: usize;
                 let num_of_roots: usize = roots.len();
 
                 // 'z' starts at 'z_in' and gets decremented by polynomial
@@ -75,7 +79,6 @@ impl Fractal {
                 // 'partial' is used to sum up all of the product rule terms
                 // of the derivative
                 let mut partial: MyComplex<f32>;
-
                 // Use Newton's method enough times to get z_in to converge to
                 // a root
                 for i in 0..NEWTON_ITER {
@@ -84,12 +87,10 @@ impl Fractal {
                     deriv = MyComplex::new(1.0, 0.0);
 
                     // Loop over all of the roots in the polynomial
-                    j = 0;
                     for j in 0..num_of_roots {
                         poly *= z - roots[j];
 
                         partial = MyComplex::new(1.0, 0.0);
-                        k = 0;
                         for k in 0..num_of_roots {
                             if k != j { partial *= z - roots[k]; }
                         }
@@ -109,7 +110,6 @@ impl Fractal {
                 let mut closest_root: usize = 0;
                 let mut smallest_diff: f32 = (z - roots[0]).mag_sqr();
                 let mut diff: f32;
-                j = 1;
                 for j in 0..num_of_roots {
                     diff = (z - roots[j]).mag_sqr();
                     if diff < smallest_diff {
@@ -126,22 +126,15 @@ impl Fractal {
 
 /*------------------------------------------------------------------------
                                 TESTS
-------------------------------------------------------------------------*/
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use super::super::my_complex::{self, MyComplex};
-
-    // Check some known values on the Mandelbrot set, and make sure the
-    // divergence values make sense
-    #[test]
+------------------------------------------------------------------------*/ #[cfg(test)] mod tests { use super::*; use super::super::my_complex::{self, MyComplex}; // Check some known values on the Mandelbrot set, and make sure the divergence values make sense #[test]
     fn mandelbrot_test () {
         let fractal_to_test: Fractal = Fractal::Mandelbrot();
 
+        println!("testing...");
         let cmplx_in: [MyComplex::<f32>; 5] = [MyComplex::new(0.0, 0.0),
             MyComplex::new(1.0, 0.0), MyComplex::new(-0.3, -0.009),
             MyComplex::new(0.75, -0.1), MyComplex::new(0.26, 0.0)];
-        let known_vals: [u32; 5] = [1000, 2, 1000, 3, 30];
+        let known_vals: [u32; 5] = [1000, 3, 1000, 3, 30];
         let mut mandel_vals: [u32; 5] = [0; 5];
         let mut i: usize = 0;
         while i < 5 {
