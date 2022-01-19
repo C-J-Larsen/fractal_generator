@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul, Div, AddAssign};
+use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign};
 
 // A trait for things that when the basic operations (+ - * /) are done on them,
 // they return something of the same type. Also myst be copiable (aka a stack
@@ -84,6 +84,27 @@ impl<T: BasicOps> AddAssign for MyComplex<T> {
     }
 }
 
+impl<T: BasicOps> SubAssign for MyComplex<T> {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.r = self.r - rhs.r;
+        self.i = self.i - rhs.i;
+    }
+}
+
+impl<T: BasicOps> MulAssign for MyComplex<T> {
+    fn mul_assign(&mut self, rhs: Self) {
+        self.r = self.r * rhs.r - self.i * rhs.i;
+        self.i = self.r * rhs.i + self.i * rhs.r;
+    }
+}
+
+impl<T: BasicOps> DivAssign for MyComplex<T> {
+    fn div_assign(&mut self, rhs: Self) {
+        let divisor: T = rhs.r*rhs.r + rhs.i*rhs.i;
+        self.r = (self.r*rhs.r + self.i*rhs.i) / divisor;
+        self.i = (self.i*rhs.r - self.r*rhs.i) / divisor;
+    }
+}
 /*===================================================================
 UNIT TESTS
 ===================================================================*/
