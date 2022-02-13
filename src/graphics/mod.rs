@@ -1,5 +1,5 @@
 pub mod color_mapping;
 pub mod bmp_img_maker;
 
-struct Color { r:u8, g:u8, b:u8 }
-struct PixPos { row:u32, col:u32 }
+pub struct Color { pub r:u8, pub g:u8, pub b:u8 }
+pub struct PixPos { pub row:u32, pub col:u32 }

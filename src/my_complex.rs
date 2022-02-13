@@ -19,7 +19,7 @@ pub struct MyComplex<T: BasicOps> {
 impl<T: BasicOps> MyComplex<T> {
     // Constructor for MyComplex
     pub fn new(r: T, i: T) -> Self {
-        Self { r: r, i: i }
+        Self { r, i }
     }
     // Getter functions for MyComplex
     pub fn r(&self) -> T { self.r }
@@ -79,30 +79,25 @@ impl<T: BasicOps> Div for MyComplex<T> {
 
 impl<T: BasicOps> AddAssign for MyComplex<T> {
     fn add_assign(&mut self, rhs: Self) {
-        self.r = self.r + rhs.r;
-        self.i = self.i + rhs.i;
+        *self = *self + rhs;
     }
 }
 
 impl<T: BasicOps> SubAssign for MyComplex<T> {
     fn sub_assign(&mut self, rhs: Self) {
-        self.r = self.r - rhs.r;
-        self.i = self.i - rhs.i;
+        *self = *self - rhs;
     }
 }
 
 impl<T: BasicOps> MulAssign for MyComplex<T> {
     fn mul_assign(&mut self, rhs: Self) {
-        self.r = self.r * rhs.r - self.i * rhs.i;
-        self.i = self.r * rhs.i + self.i * rhs.r;
+        *self = *self * rhs;
     }
 }
 
 impl<T: BasicOps> DivAssign for MyComplex<T> {
     fn div_assign(&mut self, rhs: Self) {
-        let divisor: T = rhs.r*rhs.r + rhs.i*rhs.i;
-        self.r = (self.r*rhs.r + self.i*rhs.i) / divisor;
-        self.i = (self.i*rhs.r - self.r*rhs.i) / divisor;
+        *self = *self / rhs;
     }
 }
 /*===================================================================

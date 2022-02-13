@@ -24,8 +24,8 @@ pub enum Fractal {
 // 2) The closest root after `n` iterations (Newton)
 #[derive(Clone, Copy, Debug)]
 pub enum FracVal {
-    MandelJulia(u32),
-    Newton(usize),
+    MandelJulia {iters:u32, max_iters:u32},
+    Newton {closest:usize, roots:usize},
 }
 
 // All that needs to be implemented for a Fractal is the algorithm that
@@ -46,7 +46,7 @@ impl Fractal {
                         break;
                     }
                 }
-                FracVal::MandelJulia(iterations)
+                FracVal::MandelJulia{iters:iterations, max_iters:MAX_ITER}
             }
             // NOTE: since self is a borrowed value (aka immutable pass by
             // reference), z_const is a reference to an enum value. To use it,
@@ -62,7 +62,7 @@ impl Fractal {
                         break;
                     }
                 }
-                FracVal::MandelJulia(iterations)
+                FracVal::MandelJulia{iters:iterations, max_iters:MAX_ITER}
             }
             Fractal::Newton(roots) => {
 
@@ -76,34 +76,38 @@ impl Fractal {
                 // The polynomial and derivative are complex numbers.
                 let mut poly: MyComplex<f32>;
                 let mut deriv: MyComplex<f32>;
+                let mut polyTerm: MyComplex<f32>;
                 // 'partial' is used to sum up all of the product rule terms
                 // of the derivative
                 let mut partial: MyComplex<f32>;
                 // Use Newton's method enough times to get z_in to converge to
                 // a root
                 for i in 0..NEWTON_ITER {
-                    // Start with a guess of the polynomial root at 1 + 0i
+                    // Start poly at 1, the multiplicative identity
                     poly = MyComplex::new(1.0, 0.0);
-                    deriv = MyComplex::new(1.0, 0.0);
+                    // Start deriv at 0, the additive identity
+                    deriv = MyComplex::new(0.0, 0.0);
 
                     // Loop over all of the roots in the polynomial
                     for j in 0..num_of_roots {
-                        poly *= z - roots[j];
+                        // Calculate the polynomial by multiplying each of
+                        // the terms together
+                        polyTerm = z - roots[j];
+                        poly *= polyTerm;
 
                         partial = MyComplex::new(1.0, 0.0);
                         for k in 0..num_of_roots {
                             if k != j { partial *= z - roots[k]; }
                         }
 
+                        // Calculate the derivative by summing together the
+                        // product rule terms
                         deriv += partial;
                     }
 
                     z -= poly/deriv;
                 }
                 
-                // Print final value of the iteration loop
-                println!("z: {:?}", z);
-
                 // Calculate which root the point is now closest to (assume
                 // that the first root is the closest, just to get a starting
                 // value to compare off of.
@@ -118,7 +122,8 @@ impl Fractal {
                     }
                 }
                 // Return the closest root as a FracVal
-                FracVal::Newton(closest_root)
+                // println!("{}, {}", closest_root, num_of_roots);
+                FracVal::Newton{closest:closest_root, roots:num_of_roots}
             }
         }
     }
@@ -126,7 +131,12 @@ impl Fractal {
 
 /*------------------------------------------------------------------------
                                 TESTS
-------------------------------------------------------------------------*/ #[cfg(test)] mod tests { use super::*; use super::super::my_complex::{self, MyComplex}; // Check some known values on the Mandelbrot set, and make sure the divergence values make sense #[test]
+------------------------------------------------------------------------*/
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::super::my_complex::{self, MyComplex};
+    // Check some known values on the Mandelbrot set, and make sure the divergence values make sense #[test]
     fn mandelbrot_test () {
         let fractal_to_test: Fractal = Fractal::Mandelbrot();
 
@@ -138,7 +148,7 @@ impl Fractal {
         let mut mandel_vals: [u32; 5] = [0; 5];
         let mut i: usize = 0;
         while i < 5 {
-            if let FracVal::MandelJulia(num) = fractal_to_test.complex_to_frac_val(cmplx_in[i]) {
+            if let FracVal::MandelJulia{iters:num, max_iters:_} = fractal_to_test.complex_to_frac_val(cmplx_in[i]) {
                 mandel_vals[i] = num;
             }
             i += 1;
@@ -159,7 +169,7 @@ impl Fractal {
         let mut julia_vals: [u32; 5] = [0; 5];
         let mut i: usize = 0;
         while i < 5 {
-            if let FracVal::MandelJulia(num) = fractal_to_test.complex_to_frac_val(cmplx_in[i]) {
+            if let FracVal::MandelJulia{iters:num, max_iters:_} = fractal_to_test.complex_to_frac_val(cmplx_in[i]) {
                 julia_vals[i] = num;
             }
             i += 1;
@@ -182,7 +192,7 @@ impl Fractal {
         let mut newton_vals: [usize; 5] = [0; 5];
         let mut i: usize = 0;
         while i < 5 {
-            if let FracVal::Newton(num) = fractal_to_test.complex_to_frac_val(cmplx_in[i]) {
+            if let FracVal::Newton{closest:num, roots:_} = fractal_to_test.complex_to_frac_val(cmplx_in[i]) {
                 newton_vals[i] = num;
             }
             i += 1;
