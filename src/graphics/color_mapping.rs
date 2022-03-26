@@ -1,13 +1,13 @@
-use super::super::fractals::FracVal;
+use super::super::fractals::FracOutput;
 use super::Color;
 
-pub fn FracVal_to_Color(val: FracVal) -> Color {
+pub fn FracOutput_to_Color(val: FracOutput) -> Color {
     match val {
-        FracVal::MandelJulia{iters:m_j_val, max_iters:max} => {
+        FracOutput::MandelJulia{iters:m_j_val, max_iters:max} => {
             let red: u8 = (m_j_val * 255 / max) as u8;
             Color { r:red, g:red, b:red }
         },
-        FracVal::Newton{closest:n_val, roots:num_of_roots} => {
+        FracOutput::Newton{closest:n_val, roots:num_of_roots} => {
             match n_val {
                 0 => Color { r: 255, g: 0, b: 0 },
                 1 => Color { r: 0, g: 255, b: 0 },
